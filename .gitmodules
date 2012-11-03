@@ -1,0 +1,3 @@
+[submodule "lib/ghc-mod"]
+	path = lib/ghc-mod
+	url = git://github.com/kazu-yamamoto/ghc-mod.git
