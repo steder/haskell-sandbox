@@ -11,6 +11,11 @@ printArg arg = do
   print arg
 
 
+factorial :: Int -> Int
+factorial 0 = 1
+factorial n = n * factorial n - 1
+
+
 main = do
   -- map catFile getArgs
   args <- getArgs
