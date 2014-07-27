@@ -22,10 +22,10 @@ The first PA comic is:
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as P
 import Data.List
-import Data.Maybe -- necessary for isJust
+-- import Data.Maybe -- necessary for isJust
 import Network.HTTP
 import Text.Printf
-import Text.Regex
+-- import Text.Regex
 import Text.HTML.TagSoup
 
 
