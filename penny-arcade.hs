@@ -36,8 +36,7 @@ import Text.HTML.TagSoup
 -- addDays 10 (fromGregorian 1998 11 18)
 getDays :: Day -> [Day]
 getDays initial_date =
-  map (\x -> addDays x initial_date) increments where
-    increments = map ((+) 1) [0, 1..]
+  map (\x -> addDays x initial_date) [0,1..]
 
 
 makePennyArcadeURL :: Integer -> Int -> Int -> String
@@ -51,6 +50,7 @@ giveUp url = do
   return $ "I couldn't find a valid PA image on:" ++ url
 
 
+downloadTag :: Tag [Char] -> IO ( String )
 downloadTag tag = do
   putStrLn (show tag)
   let comicURL = (fromAttrib "src" tag)
@@ -62,22 +62,20 @@ downloadTag tag = do
 
 
 -- getComicJpeg :: String -> IO (Maybe (IO String))
-getComicJpeg :: String -> IO (Maybe String)
+-- getComicJpeg :: String -> IO (Maybe String)
+-- getComicJpeg :: String -> IO (String, Bool)
 getComicJpeg url = do
   putStrLn url
   resp <- simpleHTTP (getRequest url)
   code <- getResponseCode resp
   body <- getResponseBody resp
   putStrLn (show code)
-  -- TODO: combine into a single filter
   let tags = (filter myFilter (filter (isTagOpenName "img") $ (parseTags body)))
-  case tags of
-    (firstTag: _) -> downloadTag firstTag
-    []            -> Nothing
+  downloadTag (tags !! 0)
 
 
 paFileName year month day =
-  "pa_" ++ (show year) ++ "_" ++ (show month) ++ "_" ++ (show day)
+  "pa_" ++ (show year) ++ "_" ++ (show month) ++ "_" ++ (show day) ++ ".jpg"
 
 
 main = do
