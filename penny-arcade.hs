@@ -43,7 +43,9 @@ makePennyArcadeURL :: Integer -> Int -> Int -> String
 makePennyArcadeURL year month day = printf "http://penny-arcade.com/comic/%s/%s/%s" (show year) (show month) (show day)
 
 
-myFilter tag = isPrefixOf "http://art.penny-arcade" $ fromAttrib "src" tag
+myFilter tag = isPrefixOf "http://art.penny-arcade" src
+  where
+    src = fromAttrib "src" tag
 
 
 giveUp url = do
@@ -61,6 +63,15 @@ downloadTag tag = do
   getResponseBody comicResp
 
 
+
+
+handleComicPage (2, 0, 0) resp = do
+  body <- getResponseBody resp
+  let tags = (filter myFilter (filter (isTagOpenName "img") $ (parseTags body)))
+  return $ Just $ downloadTag (tags !! 0)
+handleComicPage code resp = return Nothing
+
+
 -- getComicJpeg :: String -> IO (Maybe (IO String))
 -- getComicJpeg :: String -> IO (Maybe String)
 -- getComicJpeg :: String -> IO (String, Bool)
@@ -68,10 +79,7 @@ getComicJpeg url = do
   putStrLn url
   resp <- simpleHTTP (getRequest url)
   code <- getResponseCode resp
-  body <- getResponseBody resp
-  putStrLn (show code)
-  let tags = (filter myFilter (filter (isTagOpenName "img") $ (parseTags body)))
-  downloadTag (tags !! 0)
+  handleComicPage code resp
 
 
 paFileName year month day =
@@ -84,7 +92,14 @@ main = do
 -- --   -- jpg <- getComicJpeg url
 -- --   -- B.writeFile "pa_1998_11_18.jpg" (P.pack jpg)
   let days = take 10 $ getDays (fromGregorian 1998 11 18)
-  let (year, month, day) = (toGregorian (days !! 0))
-  let url = makePennyArcadeURL year month day
-  jpg <- getComicJpeg url
-  B.writeFile (paFileName year month day) (P.pack jpg)
+
+  mapM_ download days where
+    download date = do
+      let (year, month, day) = (toGregorian date)
+      let url = makePennyArcadeURL year month day
+      maybeJpg <- getComicJpeg url
+      case maybeJpg of
+        Nothing -> putStrLn "Nope, couldn't find a comic at that url"
+        Just jpg -> do
+          j <- jpg
+          B.writeFile (paFileName year month day) (P.pack j)
